@@ -1,0 +1,88 @@
+{
+  "uid": "medflow-dotnet",
+  "title": "MedFlow .NET - Negocio, Cache e Resiliencia",
+  "tags": ["medflow", "unifunec", "dotnet"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Fallback do convenio acionado (taxa/s)",
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "rate(medflow_convenio_fallback_acionado_total[1m])", "legendFormat": "fallback/s", "refId": "A" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Consultas criadas por status de cobertura",
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 0 },
+      "targets": [
+        { "expr": "sum by (cobertura) (rate(medflow_consultas_criadas_total[1m]))", "legendFormat": "{{cobertura}}", "refId": "A" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Chamadas ao convenio por resultado",
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 0 },
+      "targets": [
+        { "expr": "sum by (resultado) (rate(medflow_convenio_verificacoes_total[1m]))", "legendFormat": "{{resultado}}", "refId": "A" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Cache: hits por camada x misses",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 5 },
+      "targets": [
+        { "expr": "sum by (camada) (rate(medflow_cache_hit_total[1m]))", "legendFormat": "HIT {{camada}}", "refId": "A" },
+        { "expr": "sum(rate(medflow_cache_miss_total[1m]))", "legendFormat": "MISS", "refId": "B" }
+      ]
+    },
+    {
+      "type": "gauge",
+      "title": "Cache hit ratio (%)",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 5 },
+      "targets": [
+        { "expr": "100 * sum(rate(medflow_cache_hit_total[5m])) / clamp_min(sum(rate(medflow_cache_hit_total[5m])) + sum(rate(medflow_cache_miss_total[5m])), 0.0001)", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 100, "unit": "percent",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 50 },
+            { "color": "green", "value": 80 } ] }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Latencia HTTP (p95) por rota",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 5 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (le, http_route) (rate(http_server_request_duration_seconds_bucket[1m])))", "legendFormat": "{{http_route}}", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Regras de agendamento violadas",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 11 },
+      "targets": [
+        { "expr": "sum by (regra) (rate(medflow_agendamento_regra_violada_total[1m]))", "legendFormat": "{{regra}}", "refId": "A" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Runtime .NET: GC e alocacao",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 11 },
+      "targets": [
+        { "expr": "rate(dotnet_gc_collections_total[1m])", "legendFormat": "GC gen {{generation}}", "refId": "A" },
+        { "expr": "rate(dotnet_gc_heap_total_allocated_bytes_total[1m])", "legendFormat": "alocacao/s", "refId": "B" }
+      ]
+    }
+  ]
+}

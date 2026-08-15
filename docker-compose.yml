@@ -1,0 +1,96 @@
+# ============================================================
+# Stack local completa do MedFlow (.NET 9).
+#   docker compose up -d --build
+#
+# PostgreSQL -> 5432   | Redis    -> 6379
+# Prometheus -> 9090   | Grafana  -> 3000 (admin/admin)
+# Zipkin     -> 9411   | WireMock -> 8089 (servico de convenio simulado)
+# API        -> 8080
+# ============================================================
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: medflow-postgres
+    environment:
+      POSTGRES_DB: medflow
+      POSTGRES_USER: medflow
+      POSTGRES_PASSWORD: medflow
+    ports: [ "5432:5432" ]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U medflow -d medflow" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: medflow-redis
+    ports: [ "6379:6379" ]
+    command: [ "redis-server", "--appendonly", "yes" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Servico EXTERNO de convenio (simulado) ────────────────
+  # E este container que sera derrubado no video para provar o
+  # circuit breaker e o fallback:  docker compose stop wiremock
+  wiremock:
+    image: wiremock/wiremock:3.9.1
+    container_name: medflow-convenio-mock
+    ports: [ "8089:8080" ]
+    command: [ "--global-response-templating", "--verbose" ]
+    volumes:
+      - ./docker/wiremock:/home/wiremock
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: medflow-prometheus
+    ports: [ "9090:9090" ]
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: medflow-grafana
+    ports: [ "3000:3000" ]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    depends_on: [ prometheus ]
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: medflow-zipkin
+    ports: [ "9411:9411" ]
+
+  api:
+    build: .
+    container_name: medflow-api
+    ports: [ "8080:8080" ]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      zipkin:
+        condition: service_started
+      wiremock:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  grafana_data:

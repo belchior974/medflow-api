@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 5s          # curto de proposito: no video o grafico reage rapido
+  evaluation_interval: 5s
+
+scrape_configs:
+  # O exporter do OpenTelemetry expoe em /metrics (e nao /actuator/prometheus,
+  # como era no Spring Boot).
+  - job_name: 'medflow-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: [ 'api:8080' ]
+        labels:
+          application: medflow-api
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: [ 'localhost:9090' ]

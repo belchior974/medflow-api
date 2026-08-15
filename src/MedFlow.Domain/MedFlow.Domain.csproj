@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    NENHUMA PackageReference e NENHUM ProjectReference.
+    Isso nao e descuido: o dominio nao pode compilar contra EF Core, Dapper,
+    Polly ou ASP.NET Core. A regra de dependencia da Clean Architecture deixa
+    de ser convencao e passa a ser verificada pelo compilador.
+  -->
+</Project>

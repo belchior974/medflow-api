@@ -1,0 +1,9 @@
+{
+  "priority": 10,
+  "request": { "method": "GET", "urlPathPattern": "/convenios/[0-9]+/cobertura" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": { "coberto": true, "motivo": "procedimento previsto no rol da operadora" }
+  }
+}

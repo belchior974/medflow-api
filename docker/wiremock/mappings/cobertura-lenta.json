@@ -1,0 +1,14 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/convenios/[0-9]+/cobertura",
+    "queryParameters": { "procedimento": { "matches": ".*LENTO.*" } }
+  },
+  "response": {
+    "status": 200,
+    "fixedDelayMilliseconds": 6000,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": { "coberto": true, "motivo": "resposta lenta de proposito (dispara o Timeout do Polly)" }
+  }
+}

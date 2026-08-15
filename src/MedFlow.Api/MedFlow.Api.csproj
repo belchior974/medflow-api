@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\MedFlow.Infrastructure\MedFlow.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- OpenAPI nativo do .NET 9 + Scalar como UI -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.0.0" />
+
+    <!-- Observabilidade: OpenTelemetry (metricas -> Prometheus, traces -> Zipkin) -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.11.0-beta.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.11.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="MedFlow.IntegrationTests" />
+  </ItemGroup>
+</Project>
