@@ -6,17 +6,20 @@
 # Prometheus -> 9090   | Grafana  -> 3000 (admin/admin)
 # Zipkin     -> 9411   | WireMock -> 8089 (servico de convenio simulado)
 # API        -> 8080
+#
+# Nomes e portas sao os padroes; use MEDFLOW_PREFIX e MEDFLOW_PORTA_* para rodar
+# em paralelo com outra stack (ex.: a versao Spring Boot desta mesma API).
 # ============================================================
 services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: medflow-postgres
+    container_name: ${MEDFLOW_PREFIX:-medflow}-postgres
     environment:
       POSTGRES_DB: medflow
       POSTGRES_USER: medflow
       POSTGRES_PASSWORD: medflow
-    ports: [ "5432:5432" ]
+    ports: [ "${MEDFLOW_PORTA_PG:-5432}:5432" ]
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -27,8 +30,8 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: medflow-redis
-    ports: [ "6379:6379" ]
+    container_name: ${MEDFLOW_PREFIX:-medflow}-redis
+    ports: [ "${MEDFLOW_PORTA_REDIS:-6379}:6379" ]
     command: [ "redis-server", "--appendonly", "yes" ]
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
@@ -41,16 +44,16 @@ services:
   # circuit breaker e o fallback:  docker compose stop wiremock
   wiremock:
     image: wiremock/wiremock:3.9.1
-    container_name: medflow-convenio-mock
-    ports: [ "8089:8080" ]
+    container_name: ${MEDFLOW_PREFIX:-medflow}-convenio-mock
+    ports: [ "${MEDFLOW_PORTA_WIREMOCK:-8089}:8080" ]
     command: [ "--global-response-templating", "--verbose" ]
     volumes:
       - ./docker/wiremock:/home/wiremock
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: medflow-prometheus
-    ports: [ "9090:9090" ]
+    container_name: ${MEDFLOW_PREFIX:-medflow}-prometheus
+    ports: [ "${MEDFLOW_PORTA_PROMETHEUS:-9090}:9090" ]
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     command:
@@ -59,8 +62,8 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: medflow-grafana
-    ports: [ "3000:3000" ]
+    container_name: ${MEDFLOW_PREFIX:-medflow}-grafana
+    ports: [ "${MEDFLOW_PORTA_GRAFANA:-3000}:3000" ]
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -72,13 +75,13 @@ services:
 
   zipkin:
     image: openzipkin/zipkin:latest
-    container_name: medflow-zipkin
-    ports: [ "9411:9411" ]
+    container_name: ${MEDFLOW_PREFIX:-medflow}-zipkin
+    ports: [ "${MEDFLOW_PORTA_ZIPKIN:-9411}:9411" ]
 
   api:
     build: .
-    container_name: medflow-api
-    ports: [ "8080:8080" ]
+    container_name: ${MEDFLOW_PREFIX:-medflow}-api
+    ports: [ "${MEDFLOW_PORTA_API:-8080}:8080" ]
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
     depends_on:

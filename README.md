@@ -227,6 +227,26 @@ E `ParametrosAgenda` é um **record do domínio** — a infraestrutura apenas o 
 docker compose up -d --build
 ```
 
+> **Conflito de nomes e portas.** Os serviços usam `container_name` fixo
+> (`medflow-postgres`, `medflow-redis`, `medflow-prometheus`, `medflow-grafana`,
+> `medflow-zipkin`, `medflow-convenio-mock`) e as portas padrão. Se a versão Spring Boot
+> desta mesma API estiver no ar, os nomes colidem e o `up` falha. Derrube a outra stack
+> antes:
+>
+> ```bash
+> docker compose -p medflow-api down     # a partir do diretório da versão Spring Boot
+> ```
+>
+> Para rodar as duas lado a lado, sobrescreva o prefixo e as portas via variáveis de
+> ambiente (veja os defaults em `docker-compose.yml`):
+>
+> ```bash
+> MEDFLOW_PREFIX=medflow-net MEDFLOW_PORTA_API=8090 MEDFLOW_PORTA_PG=5433 \
+>   MEDFLOW_PORTA_REDIS=6380 MEDFLOW_PORTA_GRAFANA=3001 \
+>   MEDFLOW_PORTA_PROMETHEUS=9091 MEDFLOW_PORTA_ZIPKIN=9412 \
+>   MEDFLOW_PORTA_WIREMOCK=8091 docker compose up -d --build
+> ```
+
 | Serviço | URL | Credenciais |
 |---|---|---|
 | API | http://localhost:8080 | — |
