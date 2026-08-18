@@ -8,6 +8,11 @@ namespace MedFlow.Infrastructure.Persistence;
 
 public sealed class DbConnectionFactory(IOptions<MedFlowOptions> options) : IDbConnectionFactory
 {
+    // O registro dos type handlers do Dapper e global ao processo. Amarra-lo ao tipo que
+    // cria as conexoes garante que ele aconteca antes de qualquer consulta, sem depender
+    // da ordem de registro no DI.
+    static DbConnectionFactory() => Dapper.DapperTypeHandlers.Registrar();
+
     private readonly MedFlowOptions.BancoOptions _banco = options.Value.Banco;
 
     public string Provider => _banco.Provider.ToLowerInvariant();
