@@ -5,6 +5,7 @@ using MedFlow.Infrastructure.Gateway;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
+using Polly;
 using Polly.CircuitBreaker;
 using Polly.Registry;
 using WireMock.RequestBuilders;
