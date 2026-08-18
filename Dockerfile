@@ -18,8 +18,15 @@ RUN dotnet publish src/MedFlow.Api/MedFlow.Api.csproj -c Release -o /app/publish
 # ---------- runtime ----------
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
-RUN adduser --disabled-password --gecos "" --uid 1001 medflow
-COPY --from=build /app/publish .
+# O dono precisa ser do DIRETORIO, nao so dos arquivos: a connection string padrao
+# do SQLite e relativa ao diretorio de trabalho, e criar o arquivo exige permissao
+# de escrita em /app. Sem isso a imagem morria no startup com "SQLite Error 14:
+# unable to open database file". Nao afetava o docker compose (que usa
+# ASPNETCORE_ENVIRONMENT=Docker, logo PostgreSQL), mas deixava a imagem
+# inutilizavel sozinha.
+RUN adduser --disabled-password --gecos "" --uid 1001 medflow \
+    && chown medflow:medflow /app
+COPY --from=build --chown=medflow:medflow /app/publish .
 USER medflow
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080 \
