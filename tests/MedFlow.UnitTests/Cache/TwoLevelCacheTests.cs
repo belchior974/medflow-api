@@ -118,8 +118,8 @@ public sealed class TwoLevelCacheTests
     [Fact(DisplayName = "RESILIENCIA: Redis lancando excecao nao propaga erro - degrada para L1")]
     public async Task RedisComFalhaDegradaParaL1()
     {
-        // A sobrecarga que TwoLevelCache.GravarAsync realmente resolve inclui o
-        // parametro "bool keepTtl"; sem ele o stub nunca casa e o Redis falso fica vazio.
+        // Mesma sobrecarga com "bool keepTtl" usada em GravarAsync; sem ela o stub nao
+        // casa e a excecao simulada nunca chega a ser lancada.
         _db.StringSetAsync(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(),
                 Arg.Any<TimeSpan?>(), Arg.Any<bool>(), Arg.Any<When>(), Arg.Any<CommandFlags>())
             .Returns<Task<bool>>(_ => throw new RedisConnectionException(
