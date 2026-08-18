@@ -103,20 +103,22 @@ internal static class SchemaScripts
     /// <summary>
     /// Seed idempotente: roda em todo startup sem violar as constraints UNIQUE.
     /// A sintaxe INSERT ... SELECT ... WHERE NOT EXISTS funciona em ambos os bancos.
+    /// Booleanos exigem o literal TRUE: o PostgreSQL nao faz coercao implicita de
+    /// integer para boolean (SQLSTATE 42804), e o SQLite reconhece TRUE desde a 3.23.
     /// </summary>
     public const string Seed = """
         INSERT INTO convenio (nome, ativo)
-        SELECT 'Unimed', 1 WHERE NOT EXISTS (SELECT 1 FROM convenio WHERE nome = 'Unimed');
+        SELECT 'Unimed', TRUE WHERE NOT EXISTS (SELECT 1 FROM convenio WHERE nome = 'Unimed');
 
         INSERT INTO convenio (nome, ativo)
-        SELECT 'Bradesco Saude', 1 WHERE NOT EXISTS (SELECT 1 FROM convenio WHERE nome = 'Bradesco Saude');
+        SELECT 'Bradesco Saude', TRUE WHERE NOT EXISTS (SELECT 1 FROM convenio WHERE nome = 'Bradesco Saude');
 
         INSERT INTO profissional (nome, especialidade, crm, ativo)
-        SELECT 'Dra. Helena Prado', 'CARDIOLOGIA', 'CRM-SP-112233', 1
+        SELECT 'Dra. Helena Prado', 'CARDIOLOGIA', 'CRM-SP-112233', TRUE
         WHERE NOT EXISTS (SELECT 1 FROM profissional WHERE crm = 'CRM-SP-112233');
 
         INSERT INTO profissional (nome, especialidade, crm, ativo)
-        SELECT 'Dr. Rafael Nunes', 'ORTOPEDIA', 'CRM-SP-445566', 1
+        SELECT 'Dr. Rafael Nunes', 'ORTOPEDIA', 'CRM-SP-445566', TRUE
         WHERE NOT EXISTS (SELECT 1 FROM profissional WHERE crm = 'CRM-SP-445566');
 
         INSERT INTO paciente (nome, cpf, data_nascimento, email, telefone, convenio_id)
