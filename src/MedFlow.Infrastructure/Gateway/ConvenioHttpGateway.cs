@@ -126,16 +126,31 @@ public static class ConvenioPipelineFactory
             .Handle<TimeoutException>()
             .Handle<Polly.Timeout.TimeoutRejectedException>();
 
-        builder
+        if (opcoes.MaxTentativas < 1)
+        {
+            throw new InvalidOperationException(
+                $"MedFlow:Convenio:MaxTentativas deve ser >= 1 (recebido: {opcoes.MaxTentativas}). " +
+                "O valor e o TOTAL de tentativas, entao 1 significa uma chamada sem retentativa.");
+        }
+
+        // MaxTentativas e o TOTAL de tentativas; as retentativas sao uma a menos. Com
+        // MaxTentativas = 1 nao ha retentativa alguma, e a estrategia simplesmente nao
+        // entra no pipeline: o Polly v8 rejeita MaxRetryAttempts = 0 na validacao das
+        // opcoes, o que derrubava o agendamento inteiro com HTTP 500.
+        if (opcoes.MaxTentativas > 1)
+        {
             // 1. RETRY (mais externo) - backoff exponencial, como no Resilience4j
-            .AddRetry(new Polly.Retry.RetryStrategyOptions<StatusCobertura>
+            builder.AddRetry(new Polly.Retry.RetryStrategyOptions<StatusCobertura>
             {
                 ShouldHandle = falhasTecnicas,
                 MaxRetryAttempts = opcoes.MaxTentativas - 1,
                 Delay = TimeSpan.FromMilliseconds(opcoes.DelayInicialMs),
                 BackoffType = DelayBackoffType.Exponential,
                 UseJitter = true
-            })
+            });
+        }
+
+        builder
             // 2. CIRCUIT BREAKER
             .AddCircuitBreaker(new CircuitBreakerStrategyOptions<StatusCobertura>
             {
