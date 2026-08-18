@@ -11,7 +11,7 @@ namespace MedFlow.Infrastructure.Persistence.EfCore;
 /// tenha um unico atributo do EF Core - o dominio nem sequer referencia o pacote.
 /// </para>
 /// </summary>
-internal sealed class RegistroClinicoConfiguration : IEntityTypeConfiguration<RegistroClinico>
+internal sealed class RegistroClinicoConfiguration(bool postgres) : IEntityTypeConfiguration<RegistroClinico>
 {
     public void Configure(EntityTypeBuilder<RegistroClinico> builder)
     {
@@ -30,7 +30,19 @@ internal sealed class RegistroClinicoConfiguration : IEntityTypeConfiguration<Re
         builder.Property(r => r.Prescricao)
             .HasColumnName("prescricao").HasMaxLength(1000);
 
-        builder.Property(r => r.DataRegistro).HasColumnName("data_registro").IsRequired();
+        var dataRegistro = builder.Property(r => r.DataRegistro)
+            .HasColumnName("data_registro").IsRequired();
+
+        if (postgres)
+        {
+            // A tabela e criada por SchemaScripts como TIMESTAMP, ou seja, "timestamp
+            // without time zone". Sem declarar isso o Npgsql mapeia DateTime para
+            // timestamptz por padrao e recusa gravar valores com Kind=Unspecified
+            // ("Cannot write DateTime with Kind=Unspecified..."), derrubando o
+            // prontuario com HTTP 500. O DDL escrito a mao e a fonte de verdade aqui:
+            // nao ha migrations do EF Core neste projeto.
+            dataRegistro.HasColumnType("timestamp without time zone");
+        }
 
         builder.HasIndex(r => new { r.PacienteId, r.DataRegistro })
             .HasDatabaseName("idx_registro_paciente");

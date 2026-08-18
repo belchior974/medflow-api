@@ -17,7 +17,7 @@ public sealed class MedFlowDbContext(DbContextOptions<MedFlowDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfiguration(new RegistroClinicoConfiguration());
+        modelBuilder.ApplyConfiguration(new RegistroClinicoConfiguration(Database.IsNpgsql()));
         base.OnModelCreating(modelBuilder);
     }
 }
