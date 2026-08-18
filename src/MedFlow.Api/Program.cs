@@ -42,7 +42,14 @@ builder.Services.AddOpenTelemetry()
 
         if (!string.IsNullOrWhiteSpace(zipkin))
         {
+            // O exportador Zipkin foi marcado como obsoleto a partir do OpenTelemetry
+            // 1.15 (https://opentelemetry.io/blog/2025/deprecating-zipkin-exporters/);
+            // a migracao futura e para OpenTelemetry.Exporter.OpenTelemetryProtocol.
+            // Mantido aqui porque a stack local do docker-compose usa o Zipkin, e a
+            // 1.15.3 e a primeira versao sem a vulnerabilidade GHSA-88hf-wf7h-7w4m.
+#pragma warning disable CS0618
             traces.AddZipkinExporter(o => o.Endpoint = new Uri(zipkin));
+#pragma warning restore CS0618
         }
     });
 

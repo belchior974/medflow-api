@@ -8,12 +8,12 @@
     <PackageReference Include="Scalar.AspNetCore" Version="2.0.0" />
 
     <!-- Observabilidade: OpenTelemetry (metricas -> Prometheus, traces -> Zipkin) -->
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.11.0-beta.1" />
-    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.11.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.15.3-beta.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.15.3" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="MedFlow.IntegrationTests" />
