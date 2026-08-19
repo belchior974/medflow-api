@@ -4,7 +4,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- OpenAPI nativo do .NET 9 + Scalar como UI -->
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.19" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.0.0" />
 
     <!-- Observabilidade: OpenTelemetry (metricas -> Prometheus, traces -> Zipkin) -->
