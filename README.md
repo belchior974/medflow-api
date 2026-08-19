@@ -221,6 +221,8 @@ E `ParametrosAgenda` é um **record do domínio** — a infraestrutura apenas o 
 
 ## 6. Como executar
 
+> Guia detalhado, com solução de problemas comuns: **[COMO-RODAR.md](COMO-RODAR.md)**.
+
 ### Opção A — stack completa (recomendada para o vídeo)
 
 ```bash
