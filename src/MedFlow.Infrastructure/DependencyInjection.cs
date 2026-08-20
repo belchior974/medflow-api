@@ -106,28 +106,17 @@ public static class DependencyInjection
     {
         services.AddMemoryCache(opcoes => opcoes.SizeLimit = 10_000);
 
-        var redisConexao = configuracao.GetConnectionString("Redis");
-        if (!string.IsNullOrWhiteSpace(redisConexao))
-        {
-            services.AddSingleton<IConnectionMultiplexer>(_ =>
-            {
-                var opcoes = ConfigurationOptions.Parse(redisConexao);
-                // CRUCIAL para a degradacao graciosa: sem isso a aplicacao NAO SOBE
-                // quando o Redis esta fora do ar.
-                opcoes.AbortOnConnectFail = false;
-                opcoes.ConnectTimeout = 2_000;
-                opcoes.SyncTimeout = 2_000;
-                return ConnectionMultiplexer.Connect(opcoes);
-            });
-        }
+        // O provider resolve a connection string na CONSTRUCAO, nunca no registro - veja
+        // a documentacao de RedisConnectionProvider para o porque.
+        services.AddSingleton<RedisConnectionProvider>();
 
-        // Fabrica explicita: o Redis e OPCIONAL (pode nem estar registrado).
+        // Fabrica explicita: o Redis e OPCIONAL (Conexao pode ser null).
         services.AddSingleton<ICachePort>(sp => new TwoLevelCache(
             sp.GetRequiredService<IMemoryCache>(),
             sp.GetRequiredService<IMetricasPort>(),
             sp.GetRequiredService<IOptions<MedFlowOptions>>(),
             sp.GetRequiredService<ILogger<TwoLevelCache>>(),
-            sp.GetService<IConnectionMultiplexer>()));
+            sp.GetRequiredService<RedisConnectionProvider>().Conexao));
     }
 
     private static void AdicionarObservabilidade(IServiceCollection services)

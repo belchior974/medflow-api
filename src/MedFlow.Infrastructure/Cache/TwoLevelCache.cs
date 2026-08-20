@@ -67,7 +67,28 @@ public sealed class TwoLevelCache : ICachePort
             return doL1;
         }
 
-        var json = await LerDoRedisAsync(chaveCompleta, cache);
+        var doL2 = await LerDeL2Async<T>(chaveCompleta);
+        if (doL2 is null)
+        {
+            // PONTO UNICO de contagem do miss. Antes o CacheMiss so era registrado
+            // quando nao havia Redis configurado, entao no cenario de producao - Redis
+            // no ar, chave ausente - a metrica ficava subnotificada.
+            _metricas.CacheMiss(cache);
+            return null;
+        }
+
+        _metricas.CacheHit(cache, "L2");
+        GravarEmL1(chaveCompleta, doL2);   // promove para L1
+        return doL2;
+    }
+
+    /// <summary>
+    /// Le e desserializa o L2. Devolve <c>null</c> para qualquer forma de miss: sem
+    /// Redis, chave ausente, Redis fora do ar ou payload invalido.
+    /// </summary>
+    private async Task<T?> LerDeL2Async<T>(string chaveCompleta) where T : class
+    {
+        var json = await LerDoRedisAsync(chaveCompleta);
         if (json is null)
         {
             return null;
@@ -75,15 +96,7 @@ public sealed class TwoLevelCache : ICachePort
 
         try
         {
-            var valor = JsonSerializer.Deserialize<T>(json, JsonOpcoes);
-            if (valor is null)
-            {
-                return null;
-            }
-
-            _metricas.CacheHit(cache, "L2");
-            GravarEmL1(chaveCompleta, valor);   // promove para L1
-            return valor;
+            return JsonSerializer.Deserialize<T>(json, JsonOpcoes);
         }
         catch (JsonException e)
         {
@@ -165,11 +178,10 @@ public sealed class TwoLevelCache : ICachePort
         }
     }
 
-    private async Task<string?> LerDoRedisAsync(string chaveCompleta, string cache)
+    private async Task<string?> LerDoRedisAsync(string chaveCompleta)
     {
         if (_redis is null)
         {
-            _metricas.CacheMiss(cache);
             return null;
         }
 
