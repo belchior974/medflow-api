@@ -122,7 +122,27 @@ public static class DependencyInjection
     private static void AdicionarObservabilidade(IServiceCollection services)
     {
         services.AddSingleton<IMetricasPort, MedFlowMetrics>();
-        services.AddSingleton<IDisponibilidadeEventPublisher, DisponibilidadeEventPublisher>();
+
+        // O fan-out local para os clientes SSE existe sempre; o que muda com o Redis e
+        // apenas o TRANSPORTE entre instancias.
+        services.AddSingleton<DisponibilidadeEventPublisher>();
+
+        services.AddSingleton<IDisponibilidadeEventPublisher>(sp =>
+        {
+            var local = sp.GetRequiredService<DisponibilidadeEventPublisher>();
+
+            // Resolvido aqui, e nao no registro, para respeitar overrides de configuracao
+            // aplicados depois do Program.cs (ver RedisConnectionProvider).
+            var redis = sp.GetRequiredService<RedisConnectionProvider>().Conexao;
+            if (redis is null)
+            {
+                // Sem Redis o push continua funcionando, restrito a esta instancia.
+                return local;
+            }
+
+            return new RedisDisponibilidadeEventPublisher(
+                redis, local, sp.GetRequiredService<ILogger<RedisDisponibilidadeEventPublisher>>());
+        });
     }
 
     // -----------------------------------------------------------------------
